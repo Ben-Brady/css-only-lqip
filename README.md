@@ -1,6 +1,6 @@
 # Lean Rada LQIP
 
-Based on the amazing work of Leanrada in their blog post at https://leanrada.com/notes/css-only-lqip.
+Based on the amazing work of Lean Rada (Kalabasa) in their blog post at https://leanrada.com/notes/css-only-lqip.
 
 
 ## Usage
