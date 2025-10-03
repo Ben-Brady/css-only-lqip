@@ -26,9 +26,7 @@
   "dependencies": {
     "@lokesh.dhakar/quantize": "^1.4.0",
     "@types/node": "^24.6.2",
-    "file-type": "^21.0.0",
     "mime": "^4.0.1",
-    "ndarray-pixels": "^5.0.1",
     "sharp": "^0.33.2"
   },
   "devDependencies": {
