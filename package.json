@@ -1,0 +1,58 @@
+{
+  "name": "@nnilky/css-only-lqip",
+  "private": false,
+  "version": "0.0.1",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "default": "./dist/index.js",
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./index.js": {
+      "default": "./dist/index.js",
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "publish": "npm publish --access=public"
+  },
+  "dependencies": {
+    "@lokesh.dhakar/quantize": "^1.4.0",
+    "@types/ndarray": "^1.0.14",
+    "@types/node": "^24.6.2",
+    "file-type": "^21.0.0",
+    "mime": "^4.0.1",
+    "ndarray": "^1.0.19",
+    "ndarray-pixels": "^5.0.1",
+    "sharp": "^0.33.2"
+  },
+  "devDependencies": {
+    "typescript": "~5.8.3"
+  },
+  "files": [
+    "LICENSE",
+    "README.md",
+    "./dist/*.d.ts",
+    "./dist/*.js.map",
+    "./dist/*.js"
+  ],
+  "author": "Ben Brady",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ben-Brady/workify.git"
+  },
+  "keywords": [
+    "webworkers",
+    "workers",
+    "threads",
+    "utility"
+  ]
+}
