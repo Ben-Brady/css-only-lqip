@@ -97,18 +97,6 @@ async function analyzeImage(filepath: string, options: EncodingOptions): Promise
     const raw = rgbToOkLab(dominantColor);
     const { ll, aaa, bbb } = findOklabBits(raw);
     const { L: baseL, a: baseA, b: baseB } = bitsToLab(ll, aaa, bbb);
-    console.log(
-        "dominant rgb",
-        dominantColor,
-        "lab",
-        Number(raw.L.toFixed(4)),
-        Number(raw.a.toFixed(4)),
-        Number(raw.b.toFixed(4)),
-        "compressed",
-        Number(baseL.toFixed(4)),
-        Number(baseA.toFixed(4)),
-        Number(baseB.toFixed(4)),
-    );
 
     const getPixelValue = (index: number) => {
         const r = preview.readUint8(index * 3);

@@ -34,7 +34,6 @@ export async function getPalette(img: Sharp, options: EncodingOptions): Promise<
     if (!cmap) throw new Error("Could not quanitze pixels");
 
     const palette = cmap.palette();
-    console.log({ palette });
     const dominantColor = palette[0];
     return dominantColor;
 }
