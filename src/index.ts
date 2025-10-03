@@ -1,13 +1,36 @@
 #!/usr/bin/env node
 import sharp from "sharp";
-import { rgbToOkLab } from "./convert.js";
+import { rgbToOkLab, rgbToOkLabL, type OklabFormat } from "./convert.js";
 import { getPalette } from "./thief.js";
 import { existsSync } from "node:fs";
 
-export const encodeToLqip = async (filepath: string): Promise<number | null> => {
+export type EncodingOptions = {
+    /**
+     * Disables the check to see if images have opacity
+     * roughly halfs the speed
+     */
+    enableOpaqueCheck?: boolean;
+
+    /**
+     * The number of pixels to skip when sampling
+     *
+     * So if the sample rate is 10, 1 in every 10 pixels are sampled
+     */
+    sampleRate?: number;
+};
+
+/**
+ * Encode an image into a single number for a placeholder
+ *
+ * Based on https://leanrada.com/notes/css-only-lqip/
+ */
+export const encodeToLqip = async (
+    filepath: string,
+    options?: EncodingOptions,
+): Promise<number | null> => {
     try {
         if (!existsSync(filepath)) return null;
-        const value = await analyzeImage(filepath);
+        const value = await analyzeImage(filepath, options ?? {});
         if (!value) return null;
 
         const { ll, aaa, bbb, values } = value;
@@ -54,39 +77,44 @@ type ImageData = {
     };
 };
 
-async function analyzeImage(filepath: string): Promise<ImageData | null> {
+async function analyzeImage(filepath: string, options: EncodingOptions): Promise<ImageData | null> {
     const img = sharp(filepath);
-    const stats = await img.stats();
-    if (!stats.isOpaque) return null;
+    if (options.enableOpaqueCheck === true) {
+        const stats = await img.stats();
+        if (!stats.isOpaque) return null;
+    }
 
-    const [previewBuffer, dominantColor] = await Promise.all([
-        img
-            .clone()
-            .resize(3, 2, { fit: "fill" })
-            .sharpen({ sigma: 1 })
-            .removeAlpha()
-            .toFormat("raw", { bitdepth: 8 })
-            .toBuffer(),
-        getPalette(img, 4, 10).then((palette) => palette[0]),
-    ]);
+    const previewPromise = sharp(filepath)
+        .resize(3, 2, { fit: "fill" })
+        .sharpen({ sigma: 1 })
+        .removeAlpha()
+        .toFormat("raw", { bitdepth: 8 })
+        .toBuffer();
 
-    const {
-        L: rawBaseL,
-        a: rawBaseA,
-        b: rawBaseB,
-    } = rgbToOkLab({
-        r: dominantColor[0],
-        g: dominantColor[1],
-        b: dominantColor[2],
-    });
-    const { ll, aaa, bbb } = findOklabBits(rawBaseL, rawBaseA, rawBaseB);
-    const baseL = bitsToLabL(ll);
+    const dominantColorPromise = getPalette(img, options);
+    const [preview, dominantColor] = await Promise.all([previewPromise, dominantColorPromise]);
 
-    const getImageValue = (index: number) => {
-        const r = previewBuffer.readUint8(index * 3);
-        const g = previewBuffer.readUint8(index * 3 + 1);
-        const b = previewBuffer.readUint8(index * 3 + 2);
-        const { L } = rgbToOkLab({ r, g, b });
+    const raw = rgbToOkLab(dominantColor);
+    const { ll, aaa, bbb } = findOklabBits(raw);
+    const { L: baseL, a: baseA, b: baseB } = bitsToLab(ll, aaa, bbb);
+    console.log(
+        "dominant rgb",
+        dominantColor,
+        "lab",
+        Number(raw.L.toFixed(4)),
+        Number(raw.a.toFixed(4)),
+        Number(raw.b.toFixed(4)),
+        "compressed",
+        Number(baseL.toFixed(4)),
+        Number(baseA.toFixed(4)),
+        Number(baseB.toFixed(4)),
+    );
+
+    const getPixelValue = (index: number) => {
+        const r = preview.readUint8(index * 3);
+        const g = preview.readUint8(index * 3 + 1);
+        const b = preview.readUint8(index * 3 + 2);
+        const L = rgbToOkLabL({ r, g, b });
         return clamp(0.5 + L - baseL, 0, 1);
     };
 
@@ -95,21 +123,21 @@ async function analyzeImage(filepath: string): Promise<ImageData | null> {
         aaa,
         bbb,
         values: {
-            a: getImageValue(0),
-            b: getImageValue(1),
-            c: getImageValue(2),
-            d: getImageValue(3),
-            e: getImageValue(4),
-            f: getImageValue(5),
+            a: getPixelValue(0),
+            b: getPixelValue(1),
+            c: getPixelValue(2),
+            d: getPixelValue(3),
+            e: getPixelValue(4),
+            f: getPixelValue(5),
         },
     };
 }
 
 // find the best bit configuration that would produce a color closest to target
-function findOklabBits(targetL: number, targetA: number, targetB: number) {
-    const targetChroma = Math.hypot(targetA, targetB);
-    const scaledTargetA = scaleComponentForDiff(targetA, targetChroma);
-    const scaledTargetB = scaleComponentForDiff(targetB, targetChroma);
+function findOklabBits(target: OklabFormat) {
+    const targetChroma = Math.hypot(target.a, target.b);
+    const scaledTargetA = scaleComponentForDiff(target.a, targetChroma);
+    const scaledTargetB = scaleComponentForDiff(target.b, targetChroma);
 
     let bestBits = [0, 0, 0];
     let bestDifference = Infinity;
@@ -126,7 +154,7 @@ function findOklabBits(targetL: number, targetA: number, targetB: number) {
                 const scaledB = scaleComponentForDiff(b, chroma);
 
                 const difference = Math.hypot(
-                    L - targetL,
+                    L - target.L,
                     scaledA - scaledTargetA,
                     scaledB - scaledTargetB,
                 );
@@ -140,9 +168,9 @@ function findOklabBits(targetL: number, targetA: number, targetB: number) {
     }
 
     return {
-        ll: bestBits[0]!,
-        aaa: bestBits[1]!,
-        bbb: bestBits[2]!,
+        ll: bestBits[0],
+        aaa: bestBits[1],
+        bbb: bestBits[2],
     };
 }
 
@@ -155,5 +183,12 @@ function scaleComponentForDiff(x: number, chroma: number) {
 const bitsToLabA = (aaa: number) => (aaa / 0b1000) * 0.7 - 0.35;
 const bitsToLabB = (bbb: number) => ((bbb + 1) / 0b1000) * 0.7 - 0.35;
 const bitsToLabL = (ll: number) => (ll / 0b11) * 0.6 + 0.2;
+
+function bitsToLab(ll: number, aaa: number, bbb: number) {
+    const L = (ll / 0b11) * 0.6 + 0.2;
+    const a = (aaa / 0b1000) * 0.7 - 0.35;
+    const b = ((bbb + 1) / 0b1000) * 0.7 - 0.35;
+    return { L, a, b };
+}
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));

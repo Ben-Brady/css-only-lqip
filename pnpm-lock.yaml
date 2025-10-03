@@ -11,9 +11,6 @@ importers:
       '@lokesh.dhakar/quantize':
         specifier: ^1.4.0
         version: 1.4.0
-      '@types/ndarray':
-        specifier: ^1.0.14
-        version: 1.0.14
       '@types/node':
         specifier: ^24.6.2
         version: 24.6.2
@@ -23,9 +20,6 @@ importers:
       mime:
         specifier: ^4.0.1
         version: 4.1.0
-      ndarray:
-        specifier: ^1.0.19
-        version: 1.0.19
       ndarray-pixels:
         specifier: ^5.0.1
         version: 5.0.1

@@ -22,16 +22,28 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-import { type NdArray } from "ndarray";
-import { getPixels } from "ndarray-pixels";
 import { type Sharp } from "sharp";
 import quantize from "@lokesh.dhakar/quantize";
+import type { EncodingOptions } from ".";
 
-function createPixelArray(pixels: any, pixelCount: number, quality: number) {
+export async function getPalette(img: Sharp, options: EncodingOptions): Promise<number[]> {
+    const pixels = await img.raw().toBuffer();
+    const pixelArray = createPixelArray(pixels, options.sampleRate ?? 10);
+
+    const cmap = quantize(pixelArray, 4);
+    if (!cmap) throw new Error("Could not quanitze pixels");
+
+    const palette = cmap.palette();
+    console.log({ palette });
+    const dominantColor = palette[0];
+    return dominantColor;
+}
+
+function createPixelArray(pixels: Buffer<ArrayBufferLike>, sampleRate: number) {
     const pixelArray = [];
 
-    for (let i = 0; i < pixelCount; i += quality) {
-        let offset = i * 4;
+    for (let i = 0; i < pixels.length; i += sampleRate) {
+        let offset = i * 3;
         let r = pixels[offset];
         let g = pixels[offset + 1];
         let b = pixels[offset + 2];
@@ -39,49 +51,4 @@ function createPixelArray(pixels: any, pixelCount: number, quality: number) {
     }
 
     return pixelArray;
-}
-
-function validateOptions(colorCount: number, quality: number) {
-    if (typeof colorCount === "undefined" || !Number.isInteger(colorCount)) {
-        colorCount = 10;
-    } else if (colorCount === 1) {
-        throw new Error(
-            "`colorCount` should be between 2 and 20. To get one color, call `getColor()` instead of `getPalette()`",
-        );
-    } else {
-        colorCount = Math.max(colorCount, 2);
-        colorCount = Math.min(colorCount, 20);
-    }
-
-    if (typeof quality === "undefined" || !Number.isInteger(quality) || quality < 1) quality = 10;
-
-    return { colorCount, quality };
-}
-
-type PixelGrid = NdArray<Uint8Array<ArrayBufferLike>>;
-
-async function loadImg(img: Sharp): Promise<PixelGrid> {
-    const [buffer, metadata] = await Promise.all([img.toBuffer(), img.metadata()]);
-    const { format } = metadata;
-    if (!format) throw new Error(`Could not find format`);
-
-    return await getPixels(buffer, format);
-}
-
-export async function getColor(img: Sharp, quality: number) {
-    const pallete = await getPalette(img, 5, quality);
-    return pallete[0];
-}
-
-export async function getPalette(img: Sharp, colorCount = 10, quality = 10) {
-    const options = validateOptions(colorCount, quality);
-    const pixels = await loadImg(img);
-
-    const pixelCount = pixels.shape[0]! * pixels.shape[1]!;
-    const pixelArray = createPixelArray(pixels.data, pixelCount, options.quality);
-
-    const cmap = quantize(pixelArray, options.colorCount);
-    const palette = cmap ? cmap.palette() : null;
-
-    return palette;
 }

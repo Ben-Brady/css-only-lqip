@@ -1,7 +1,7 @@
 {
   "name": "@nnilky/css-only-lqip",
   "private": false,
-  "version": "0.0.1",
+  "version": "1.4.0",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -25,11 +25,9 @@
   },
   "dependencies": {
     "@lokesh.dhakar/quantize": "^1.4.0",
-    "@types/ndarray": "^1.0.14",
     "@types/node": "^24.6.2",
     "file-type": "^21.0.0",
     "mime": "^4.0.1",
-    "ndarray": "^1.0.19",
     "ndarray-pixels": "^5.0.1",
     "sharp": "^0.33.2"
   },

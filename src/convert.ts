@@ -50,26 +50,38 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-type OklabFormat = {
-	L: number;
-	a: number;
-	b: number;
+export type OklabFormat = {
+    L: number;
+    a: number;
+    b: number;
 };
 
-export function rgbToOkLab(c: { r: number; b: number; g: number }): OklabFormat {
-	const r = gamma_inv(c.r / 255);
-	const g = gamma_inv(c.g / 255);
-	const b = gamma_inv(c.b / 255);
+export function rgbToOkLab([r, g, b]: number[]): OklabFormat {
+    const cr = gamma_inv(r / 255);
+    const cg = gamma_inv(g / 255);
+    const cb = gamma_inv(b / 255);
 
-	const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
-	const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
-	const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+    const l = Math.cbrt(0.4122214708 * cr + 0.5363325363 * cg + 0.0514459929 * cb);
+    const m = Math.cbrt(0.2119034982 * cr + 0.6806995451 * cg + 0.1073969566 * cb);
+    const s = Math.cbrt(0.0883024619 * cr + 0.2817188376 * cg + 0.6299787005 * cb);
 
-	return {
-		L: l * +0.2104542553 + m * +0.793617785 + s * -0.0040720468,
-		a: l * +1.9779984951 + m * -2.428592205 + s * +0.4505937099,
-		b: l * +0.0259040371 + m * +0.7827717662 + s * -0.808675766,
-	};
+    return {
+        L: l * +0.2104542553 + m * +0.793617785 + s * -0.0040720468,
+        a: l * +1.9779984951 + m * -2.428592205 + s * +0.4505937099,
+        b: l * +0.0259040371 + m * +0.7827717662 + s * -0.808675766,
+    };
+}
+
+export function rgbToOkLabL(c: { r: number; b: number; g: number }): number {
+    const r = gamma_inv(c.r / 255);
+    const g = gamma_inv(c.g / 255);
+    const b = gamma_inv(c.b / 255);
+
+    const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+    const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+    const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+
+    return l * +0.2104542553 + m * +0.793617785 + s * -0.0040720468;
 }
 
 const gamma_inv = (x: number) => (x >= 0.04045 ? Math.pow((x + 0.055) / 1.055, 2.4) : x / 12.92);
