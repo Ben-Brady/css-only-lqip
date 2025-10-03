@@ -1,7 +1,7 @@
 {
   "name": "@nnilky/leanrada-lqip",
   "private": false,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -37,13 +37,14 @@
     "README.md",
     "./dist/*.d.ts",
     "./dist/*.js.map",
-    "./dist/*.js"
+    "./dist/*.js",
+    "./dist/*.css"
   ],
   "author": "Ben Brady",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Ben-Brady/workify.git"
+    "url": "git+https://github.com/Ben-Brady/leanrada-lqip.git"
   },
   "keywords": [
     "webworkers",
