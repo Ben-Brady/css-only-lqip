@@ -96,7 +96,7 @@ async function analyzeImage(filepath: string, options: EncodingOptions): Promise
 
     const raw = rgbToOkLab(dominantColor);
     const { ll, aaa, bbb } = findOklabBits(raw);
-    const { L: baseL, a: baseA, b: baseB } = bitsToLab(ll, aaa, bbb);
+    const { L: baseL } = bitsToLab(ll, aaa, bbb);
 
     const getPixelValue = (index: number) => {
         const r = preview.readUint8(index * 3);
