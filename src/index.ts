@@ -24,7 +24,7 @@ export type EncodingOptions = {
  *
  * Based on https://leanrada.com/notes/css-only-lqip/
  */
-export const encodeToLqip = async (
+export const encodeToLeanradaLqip = async (
     filepath: string,
     options?: EncodingOptions,
 ): Promise<number | null> => {
