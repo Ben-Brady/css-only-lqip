@@ -25,10 +25,10 @@ Make sure you include this CSS
 and then you can set an image's placeholder by setting the css attribute `--lqip`
 
 ```ts
-import "@nnilky/leanrada-lqdip/lqip.css";
+import {encodeToLeanradaLqip} from "@nnilky/leanrada-lqdip";
 
 export default function Image(props: { href: string }) {
-    const lqip = encodeToLqip(resolve(props.href))
+    const lqip = encodeToLeanradaLqip(resolve(props.href))
     return <img
         src={props.href}
         style={{ "--lqip": lqip }}
